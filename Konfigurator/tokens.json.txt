@@ -1,0 +1,5 @@
+{
+  "kunde1": true,
+  "kunde2": true,
+  "kunde3": false
+}
