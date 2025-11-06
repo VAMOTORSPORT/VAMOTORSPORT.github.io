@@ -1,0 +1,176 @@
+{
+  "BMW": {
+    "1er": {
+      "E81": {
+        "motor": {
+          "116i": {
+            "ps": 115,
+            "stage": {"1":130,"2":145,"3":160},
+            "hubraum":"1.6L",
+            "addons":["Pop & Bangs","AGR OFF"]
+          }
+        },
+        "years":["2004","2005","2006","2007","2008","2009"]
+      },
+      "E82": {
+        "motor": {
+          "118i": {
+            "ps": 122,
+            "stage":{"1":140,"2":155,"3":170},
+            "hubraum":"2.0L",
+            "addons":["Pop & Bangs","DPF OFF"]
+          }
+        },
+        "years":["2007","2008","2009","2010","2011","2012"]
+      }
+    },
+    "3er": {
+      "E30": {
+        "motor": {
+          "316": {"ps":115,"stage":{"1":130,"2":145,"3":160},"hubraum":"1.6L","addons":["Pop & Bangs",…
+Html für json
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VA Motorsport Konfigurator</title>
+<style>
+body{font-family:Arial,sans-serif;background:#fafafa;padding:0;margin:0}
+.container{max-width:980px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+h1{font-size:20px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;align-items:center}
+label{min-width:120px}
+select{flex:1;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:4px;background:white}
+.result{margin-top:18px;padding:12px;border-radius:6px;background:#f3f6ff;border:1px solid #d6e0ff}
+.small{font-size:13px;color:#555}
+.btn{margin-top:10px;padding:8px 12px;border-radius:5px;border:0;background:#0073e6;color:white;cursor:pointer}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #ccc;padding:6px;text-align:left}
+th{background:#e0e7ff}
+.stage-btn{padding:6px 12px;margin:4px;border:1px solid #0073e6;border-radius:4px;background:#fff;color:#0073e6;cursor:pointer;}
+.stage-btn.active{background:#0073e6;color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="container" id="container">
+  <h1>VA Motorsport Konfigurator</h1>
+  <p class="small">Wähle: Hersteller → Serie → Typ → Motorisierung → Baujahr</p>
+
+  <div id="konfigurator">
+    <div class="row">
+      <label for="hersteller">1) Hersteller</label>
+      <select id="hersteller"></select>
+    </div>
+
+    <div class="row">
+      <label for="modell">2) Serie / Modell</label>
+      <select id="modell" disabled></select>
+    </div>
+
+    <div class="row">
+      <label for="typ">3) Typ / Generation</label>
+      <select id="typ" disabled></select>
+    </div>
+
+    <div class="row">
+      <label for="motor">4) Motorisierung</label>
+      <select id="motor" disabled></select>
+    </div>
+
+    <div class="row">
+      <label for="baujahr">5) Baujahr</label>
+      <select id="baujahr" disabled></select>
+    </div>
+
+    <button class="btn" id="zeige">Konfiguration anzeigen</button>
+
+    <div id="ergebnis" class="result" aria-live="polite" style="display:none;">
+      <h2>Technisches Datenblatt</h2>
+      <table id="datenblatt">
+        <tr><th>Eigenschaft</th><th>Wert</th></tr>
+        <tr><td>Hersteller</td><td id="res-hersteller"></td></tr>
+        <tr><td>Serie / Modell</td><td id="res-modell"></td></tr>
+        <tr><td>Typ / Generation</td><td id="res-typ"></td></tr>
+        <tr><td>Motorisierung</td><td id="res-motor"></td></tr>
+        <tr><td>Baujahr</td><td id="res-baujahr"></td></tr>
+        <tr><td>Hubraum</td><td id="res-hubraum"></td></tr>
+        <tr><td>Leistung original</td><td id="res-ps"></td></tr>
+        <tr><td>Stage</td><td>
+          <button class="stage-btn" data-stage="1">Stage1</button>
+          <button class="stage-btn" data-stage="2">Stage2</button>
+          <button class="stage-btn" data-stage="3">Stage3</button>
+        </td></tr>
+        <tr><td>Leistung Stage</td><td id="res-stage"></td></tr>
+        <tr><td>Addons</td><td id="res-addons"></td></tr>
+      </table>
+    </div>
+
+    <p class="small">Einbettungs-Code:</p>
+    <pre>&lt;iframe src="https://www.dein-shop.de/konfi/konfigurator.html" width="100%" height="900" style="border:none;"&gt;&lt;/iframe&gt;</pre>
+  </div>
+</div>
+
+<script>
+// --- JSON laden ---
+let data = {};
+fetch('fahrzeuge.json')
+  .then(res=>res.json())
+  .then(json=>{data=json; initKonfigurator();});
+
+// UI Elemente
+const el={hersteller:document.getElementById('hersteller'),modell:document.getElementById('modell'),typ:document.getElementById('typ'),motor:document.getElementById('motor'),baujahr:document.getElementById('baujahr'),zeige:document.getElementById('zeige'),ergebnis:document.getElementById('ergebnis'),resHersteller:document.getElementById('res-hersteller'),resModell:document.getElementById('res-modell'),resTyp:document.getElementById('res-typ'),resMotor:document.getElementById('res-motor'),resBaujahr:document.getElementById('res-baujahr'),resHubraum:document.getElementById('res-hubraum'),resPS:document.getElementById('res-ps'),resStage:document.getElementById('res-stage'),resAddons:document.getElementById('res-addons')};
+
+// Hilfsfunktionen
+function fillSelect(elm, items, placeholder){elm.innerHTML="";const ph=document.createElement('option');ph.value="";ph.textContent=placeholder||"-- wählen --";elm.appendChild(ph);for(const it of items){const o=document.createElement('option');o.value=it;o.textContent=it;elm.appendChild(o);}elm.disabled=false;}
+function disableSelect(elm){elm.innerHTML="";const ph=document.createElement('option');ph.value="";ph.textContent="-- --";elm.appendChild(ph);elm.disabled=true;}
+
+// Init
+function initKonfigurator(){fillSelect(el.hersteller,Object.keys(data),"-- Hersteller wählen --");disableSelect(el.modell);disableSelect(el.typ);disableSelect(el.motor);disableSelect(el.baujahr);}
+
+// Eventlistener
+el.hersteller.addEventListener('change',()=>{
+  const h=el.hersteller.value;
+  if(!h){disableSelect(el.modell);disableSelect(el.typ);disableSelect(el.motor);disableSelect(el.baujahr);return;}
+  fillSelect(el.modell,Object.keys(data[h]),"-- Serie wählen --");
+  disableSelect(el.typ); disableSelect(el.motor); disableSelect(el.baujahr);
+});
+el.modell.addEventListener('change',()=>{
+  const h=el.hersteller.value, m=el.modell.value;
+  if(!m){disableSelect(el.typ);disableSelect(el.motor);disableSelect(el.baujahr);return;}
+  fillSelect(el.typ,Object.keys(data[h][m]),"-- Typ wählen --");
+  disableSelect(el.motor); disableSelect(el.baujahr);
+});
+el.typ.addEventListener('change',()=>{
+  const h=el.hersteller.value, m=el.modell.value, t=el.typ.value;
+  if(!t){disableSelect(el.motor);disableSelect(el.baujahr);return;}
+  const node = data[h][m][t];
+  fillSelect(el.motor,Object.keys(node.motor),"-- Motorisierung wählen --");
+  fillSelect(el.baujahr,node.years,"-- Baujahr wählen --");
+});
+
+// Button
+el.zeige.addEventListener('click',()=>{
+  const h=el.hersteller.value,m=el.modell.value,t=el.typ.value,mo=el.motor.value,by=el.baujahr.value;
+  if(!h||!m||!t||!mo||!by){alert("Bitte alle Felder ausfüllen.");return;}
+  const motorObj=data[h][m][t].motor[mo];
+  el.ergebnis.style.display="block";
+  el.resHersteller.textContent=h;
+  el.resModell.textContent=m;
+  el.resTyp.textContent=t;
+  el.resMotor.textContent=mo;
+  el.resBaujahr.textContent=by;
+  el.resHubraum.textContent=motorObj.hubraum;
+  el.resPS.textContent=motorObj.ps+" PS";
+  el.resStage.textContent=motorObj.stage[1]+" PS";
+  el.resAddons.textContent=motorObj.addons.join(", ");
+  document.querySelectorAll(".stage-btn").forEach(b=>{
+    b.classList.remove("active");
+    b.onclick=()=>{document.querySelectorAll(".stage-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");el.resStage.textContent=motorObj.stage[b.dataset.stage]+" PS";}
+  });
+});
+</script>
+
+</body>
+</html>
