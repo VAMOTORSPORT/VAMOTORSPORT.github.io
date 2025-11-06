@@ -1,34 +1,3 @@
-{
-  "BMW": {
-    "1er": {
-      "E81": {
-        "motor": {
-          "116i": {
-            "ps": 115,
-            "stage": {"1":130,"2":145,"3":160},
-            "hubraum":"1.6L",
-            "addons":["Pop & Bangs","AGR OFF"]
-          }
-        },
-        "years":["2004","2005","2006","2007","2008","2009"]
-      },
-      "E82": {
-        "motor": {
-          "118i": {
-            "ps": 122,
-            "stage":{"1":140,"2":155,"3":170},
-            "hubraum":"2.0L",
-            "addons":["Pop & Bangs","DPF OFF"]
-          }
-        },
-        "years":["2007","2008","2009","2010","2011","2012"]
-      }
-    },
-    "3er": {
-      "E30": {
-        "motor": {
-          "316": {"ps":115,"stage":{"1":130,"2":145,"3":160},"hubraum":"1.6L","addons":["Pop & Bangs",…
-Html für json
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -108,66 +77,117 @@ th{background:#e0e7ff}
     </div>
 
     <p class="small">Einbettungs-Code:</p>
-    <pre>&lt;iframe src="https://www.dein-shop.de/konfi/konfigurator.html" width="100%" height="900" style="border:none;"&gt;&lt;/iframe&gt;</pre>
+    <pre>&lt;iframe src="https://DEIN-BENUTZERNAME.github.io/Konfigurator/konfi/konfigurator.html" width="100%" height="900" style="border:none;"&gt;&lt;/iframe&gt;</pre>
   </div>
 </div>
 
 <script>
 // --- JSON laden ---
 let data = {};
-fetch('fahrzeuge.json')
-  .then(res=>res.json())
-  .then(json=>{data=json; initKonfigurator();});
+fetch('fahrzeuge.json') // JSON liegt im gleichen Ordner wie diese HTML
+  .then(res => res.json())
+  .then(json => {
+    data = json;
+    initKonfigurator(); // erst starten, wenn JSON geladen
+  })
+  .catch(err => console.error("Fehler beim Laden der JSON:", err));
 
 // UI Elemente
-const el={hersteller:document.getElementById('hersteller'),modell:document.getElementById('modell'),typ:document.getElementById('typ'),motor:document.getElementById('motor'),baujahr:document.getElementById('baujahr'),zeige:document.getElementById('zeige'),ergebnis:document.getElementById('ergebnis'),resHersteller:document.getElementById('res-hersteller'),resModell:document.getElementById('res-modell'),resTyp:document.getElementById('res-typ'),resMotor:document.getElementById('res-motor'),resBaujahr:document.getElementById('res-baujahr'),resHubraum:document.getElementById('res-hubraum'),resPS:document.getElementById('res-ps'),resStage:document.getElementById('res-stage'),resAddons:document.getElementById('res-addons')};
+const el = {
+  hersteller: document.getElementById('hersteller'),
+  modell: document.getElementById('modell'),
+  typ: document.getElementById('typ'),
+  motor: document.getElementById('motor'),
+  baujahr: document.getElementById('baujahr'),
+  zeige: document.getElementById('zeige'),
+  ergebnis: document.getElementById('ergebnis'),
+  resHersteller: document.getElementById('res-hersteller'),
+  resModell: document.getElementById('res-modell'),
+  resTyp: document.getElementById('res-typ'),
+  resMotor: document.getElementById('res-motor'),
+  resBaujahr: document.getElementById('res-baujahr'),
+  resHubraum: document.getElementById('res-hubraum'),
+  resPS: document.getElementById('res-ps'),
+  resStage: document.getElementById('res-stage'),
+  resAddons: document.getElementById('res-addons')
+};
 
 // Hilfsfunktionen
-function fillSelect(elm, items, placeholder){elm.innerHTML="";const ph=document.createElement('option');ph.value="";ph.textContent=placeholder||"-- wählen --";elm.appendChild(ph);for(const it of items){const o=document.createElement('option');o.value=it;o.textContent=it;elm.appendChild(o);}elm.disabled=false;}
-function disableSelect(elm){elm.innerHTML="";const ph=document.createElement('option');ph.value="";ph.textContent="-- --";elm.appendChild(ph);elm.disabled=true;}
+function fillSelect(elm, items, placeholder){
+  elm.innerHTML = "";
+  const ph = document.createElement('option');
+  ph.value = "";
+  ph.textContent = placeholder || "-- wählen --";
+  elm.appendChild(ph);
+  for(const it of items){
+    const o = document.createElement('option');
+    o.value = it;
+    o.textContent = it;
+    elm.appendChild(o);
+  }
+  elm.disabled = false;
+}
+function disableSelect(elm){
+  elm.innerHTML = "";
+  const ph = document.createElement('option');
+  ph.value = "";
+  ph.textContent = "-- --";
+  elm.appendChild(ph);
+  elm.disabled = true;
+}
 
-// Init
-function initKonfigurator(){fillSelect(el.hersteller,Object.keys(data),"-- Hersteller wählen --");disableSelect(el.modell);disableSelect(el.typ);disableSelect(el.motor);disableSelect(el.baujahr);}
+// Initialisierung
+function initKonfigurator(){
+  fillSelect(el.hersteller, Object.keys(data), "-- Hersteller wählen --");
+  disableSelect(el.modell);
+  disableSelect(el.typ);
+  disableSelect(el.motor);
+  disableSelect(el.baujahr);
+}
 
 // Eventlistener
-el.hersteller.addEventListener('change',()=>{
-  const h=el.hersteller.value;
-  if(!h){disableSelect(el.modell);disableSelect(el.typ);disableSelect(el.motor);disableSelect(el.baujahr);return;}
-  fillSelect(el.modell,Object.keys(data[h]),"-- Serie wählen --");
+el.hersteller.addEventListener('change', ()=>{
+  const h = el.hersteller.value;
+  if(!h){ disableSelect(el.modell); disableSelect(el.typ); disableSelect(el.motor); disableSelect(el.baujahr); return; }
+  fillSelect(el.modell, Object.keys(data[h]), "-- Serie wählen --");
   disableSelect(el.typ); disableSelect(el.motor); disableSelect(el.baujahr);
 });
-el.modell.addEventListener('change',()=>{
-  const h=el.hersteller.value, m=el.modell.value;
-  if(!m){disableSelect(el.typ);disableSelect(el.motor);disableSelect(el.baujahr);return;}
-  fillSelect(el.typ,Object.keys(data[h][m]),"-- Typ wählen --");
+el.modell.addEventListener('change', ()=>{
+  const h = el.hersteller.value, m = el.modell.value;
+  if(!m){ disableSelect(el.typ); disableSelect(el.motor); disableSelect(el.baujahr); return; }
+  fillSelect(el.typ, Object.keys(data[h][m]), "-- Typ wählen --");
   disableSelect(el.motor); disableSelect(el.baujahr);
 });
-el.typ.addEventListener('change',()=>{
-  const h=el.hersteller.value, m=el.modell.value, t=el.typ.value;
-  if(!t){disableSelect(el.motor);disableSelect(el.baujahr);return;}
+el.typ.addEventListener('change', ()=>{
+  const h = el.hersteller.value, m = el.modell.value, t = el.typ.value;
+  if(!t){ disableSelect(el.motor); disableSelect(el.baujahr); return; }
   const node = data[h][m][t];
-  fillSelect(el.motor,Object.keys(node.motor),"-- Motorisierung wählen --");
-  fillSelect(el.baujahr,node.years,"-- Baujahr wählen --");
+  fillSelect(el.motor, Object.keys(node.motor), "-- Motorisierung wählen --");
+  fillSelect(el.baujahr, node.years, "-- Baujahr wählen --");
 });
 
-// Button
-el.zeige.addEventListener('click',()=>{
-  const h=el.hersteller.value,m=el.modell.value,t=el.typ.value,mo=el.motor.value,by=el.baujahr.value;
-  if(!h||!m||!t||!mo||!by){alert("Bitte alle Felder ausfüllen.");return;}
-  const motorObj=data[h][m][t].motor[mo];
-  el.ergebnis.style.display="block";
-  el.resHersteller.textContent=h;
-  el.resModell.textContent=m;
-  el.resTyp.textContent=t;
-  el.resMotor.textContent=mo;
-  el.resBaujahr.textContent=by;
-  el.resHubraum.textContent=motorObj.hubraum;
-  el.resPS.textContent=motorObj.ps+" PS";
-  el.resStage.textContent=motorObj.stage[1]+" PS";
-  el.resAddons.textContent=motorObj.addons.join(", ");
+// Button "Konfiguration anzeigen"
+el.zeige.addEventListener('click', ()=>{
+  const h = el.hersteller.value, m = el.modell.value, t = el.typ.value, mo = el.motor.value, by = el.baujahr.value;
+  if(!h || !m || !t || !mo || !by){ alert("Bitte alle Felder ausfüllen."); return; }
+  const motorObj = data[h][m][t].motor[mo];
+  el.ergebnis.style.display = "block";
+  el.resHersteller.textContent = h;
+  el.resModell.textContent = m;
+  el.resTyp.textContent = t;
+  el.resMotor.textContent = mo;
+  el.resBaujahr.textContent = by;
+  el.resHubraum.textContent = motorObj.hubraum;
+  el.resPS.textContent = motorObj.ps + " PS";
+  el.resStage.textContent = motorObj.stage[1] + " PS";
+  el.resAddons.textContent = motorObj.addons.join(", ");
   document.querySelectorAll(".stage-btn").forEach(b=>{
     b.classList.remove("active");
-    b.onclick=()=>{document.querySelectorAll(".stage-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");el.resStage.textContent=motorObj.stage[b.dataset.stage]+" PS";}
+    b.onclick = () => {
+      document.querySelectorAll(".stage-btn").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      el.resStage.textContent = motorObj.stage[b.dataset.stage] + " PS";
+    }
   });
 });
 </script>
